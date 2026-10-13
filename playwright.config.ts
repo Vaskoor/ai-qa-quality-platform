@@ -34,8 +34,7 @@ export default defineConfig({
     : {
         command: 'npm run demo:server',
         url: `${BASE_URL}/health`,
-        reuseExistingServer: true, // reuse the CI-started demo server instead of port-conflicting
+        reuseExistingServer: true,
         timeout: 30_000,
       },
-});ZAI17918878515793548474713E
-bhaskarkaphle@Bhaskars-MacBook-Air ai-qa-quality-platform %
+});
