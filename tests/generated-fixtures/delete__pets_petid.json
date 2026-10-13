@@ -1,0 +1,33 @@
+{
+  "endpointId": "delete__pets_petid",
+  "cases": [
+    {
+      "name": "DELETE /pets/{petId} — happy path",
+      "description": "Verifies /pets/{petId} returns a success status for a valid request.",
+      "category": "happy-path",
+      "method": "DELETE",
+      "path": "/pets/{petId}",
+      "pathParams": {
+        "petId": 1
+      },
+      "queryParams": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expectedStatus": [
+        204,
+        200,
+        201,
+        202,
+        204
+      ],
+      "assertions": [
+        "response time < 2000ms",
+        "content-type is JSON when body present"
+      ],
+      "tags": [
+        "pets"
+      ]
+    }
+  ]
+}

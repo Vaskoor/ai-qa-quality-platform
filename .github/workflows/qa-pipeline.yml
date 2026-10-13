@@ -1,0 +1,166 @@
+name: QA Quality Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  API_BASE_URL: http://localhost:3000
+  QA_USE_MOCK_LLM: 'true'
+  OPENAPI_SPEC_PATH: ./specs/petstore-openapi.json
+  QA_OUTPUT_DIR: ./tests/generated
+
+jobs:
+  generate-and-test:
+    name: AI Test Generation & Functional Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Start demo API
+        run: |
+          npm run demo:server &
+          npx wait-on http://localhost:3000/health --timeout 30000
+
+      - name: AI test generation from OpenAPI
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm run generate:tests
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run API + generated + contract tests
+        run: npx playwright test --project=api --project=generated --project=contract
+
+      - name: Run UI tests
+        run: npx playwright test --project=ui
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  visual:
+    name: Visual Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci || npm install
+      - run: npx playwright install --with-deps chromium
+      - name: Start demo API
+        run: |
+          npm run demo:server &
+          npx wait-on http://localhost:3000/health --timeout 30000
+      - name: Run visual tests
+        run: npx playwright test --project=visual
+        continue-on-error: true
+      - name: Upload visual diffs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-results
+          path: test-results/
+          retention-days: 14
+
+  performance:
+    name: Performance (k6)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci || npm install
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+      - name: Start demo API
+        run: |
+          npm run demo:server &
+          npx wait-on http://localhost:3000/health --timeout 30000
+      - name: Run k6 load test
+        run: k6 run perf/load-test.js
+      - name: Upload k6 summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results
+          path: perf/results/
+          retention-days: 14
+
+  security:
+    name: Security (OWASP ZAP)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci || npm install
+      - name: Start demo API
+        run: |
+          npm run demo:server &
+          npx wait-on http://localhost:3000/health --timeout 30000
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: 'security/zap-rules.tsv'
+          cmd_options: '-I'
+          allow_issue_writing: false
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: report_html.html
+          retention-days: 14
+
+  quality-gate:
+    name: Quality Gate
+    needs: [generate-and-test, visual, performance, security]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Evaluate gate
+        run: |
+          echo "generate-and-test: ${{ needs.generate-and-test.result }}"
+          echo "visual:            ${{ needs.visual.result }}"
+          echo "performance:       ${{ needs.performance.result }}"
+          echo "security:          ${{ needs.security.result }}"
+          if [ "${{ needs.generate-and-test.result }}" != "success" ] || \
+             [ "${{ needs.performance.result }}" != "success" ] || \
+             [ "${{ needs.security.result }}" != "success" ]; then
+            echo "::error::Quality gate failed"
+            exit 1
+          fi
+          echo "✓ Quality gate passed"

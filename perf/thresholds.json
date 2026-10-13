@@ -1,0 +1,7 @@
+{
+  "http_req_duration": ["p(95)<800", "p(99)<1500"],
+  "http_req_failed": ["rate<0.01"],
+  "qa_errors": ["rate<0.01"],
+  "checks": ["rate>0.98"],
+  "notes": "These thresholds gate the CI performance stage. k6 exits non-zero if any fail."
+}

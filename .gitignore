@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Test artifacts
+test-results/
+playwright-report/
+blob-report/
+tests/generated/
+junit.xml
+coverage/
+
+# Perf & security artifacts
+perf/results/
+security/reports/
+
+# Env & secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+.ds_store
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+# backups
+*.bak

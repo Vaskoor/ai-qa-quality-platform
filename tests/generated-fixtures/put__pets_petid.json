@@ -1,0 +1,64 @@
+{
+  "endpointId": "put__pets_petid",
+  "cases": [
+    {
+      "name": "PUT /pets/{petId} — happy path",
+      "description": "Verifies /pets/{petId} returns a success status for a valid request.",
+      "category": "happy-path",
+      "method": "PUT",
+      "path": "/pets/{petId}",
+      "pathParams": {
+        "petId": 1
+      },
+      "queryParams": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "a"
+      },
+      "expectedStatus": [
+        200,
+        200,
+        201,
+        202,
+        204
+      ],
+      "assertions": [
+        "response time < 2000ms",
+        "content-type is JSON when body present"
+      ],
+      "tags": [
+        "pets"
+      ]
+    },
+    {
+      "name": "PUT /pets/{petId} — malformed JSON body",
+      "description": "Expects a 4xx when the body is syntactically invalid.",
+      "category": "error-handling",
+      "method": "PUT",
+      "path": "/pets/{petId}",
+      "pathParams": {
+        "petId": 1
+      },
+      "queryParams": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": [],
+      "expectedStatus": [
+        400,
+        404,
+        415,
+        422
+      ],
+      "assertions": [
+        "server does not 500 on malformed input"
+      ],
+      "tags": [
+        "pets",
+        "negative"
+      ]
+    }
+  ]
+}

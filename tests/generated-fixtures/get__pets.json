@@ -1,0 +1,31 @@
+{
+  "endpointId": "get__pets",
+  "cases": [
+    {
+      "name": "GET /pets — happy path",
+      "description": "Verifies /pets returns a success status for a valid request.",
+      "category": "happy-path",
+      "method": "GET",
+      "path": "/pets",
+      "pathParams": {},
+      "queryParams": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expectedStatus": [
+        200,
+        200,
+        201,
+        202,
+        204
+      ],
+      "assertions": [
+        "response time < 2000ms",
+        "content-type is JSON when body present"
+      ],
+      "tags": [
+        "pets"
+      ]
+    }
+  ]
+}

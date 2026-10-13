@@ -1,0 +1,31 @@
+{
+  "endpointId": "get__store_inventory",
+  "cases": [
+    {
+      "name": "GET /store/inventory — happy path",
+      "description": "Verifies /store/inventory returns a success status for a valid request.",
+      "category": "happy-path",
+      "method": "GET",
+      "path": "/store/inventory",
+      "pathParams": {},
+      "queryParams": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expectedStatus": [
+        200,
+        200,
+        201,
+        202,
+        204
+      ],
+      "assertions": [
+        "response time < 2000ms",
+        "content-type is JSON when body present"
+      ],
+      "tags": [
+        "store"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "endpointId": "get__pets_petid",
+  "cases": [
+    {
+      "name": "GET /pets/{petId} — happy path",
+      "description": "Verifies /pets/{petId} returns a success status for a valid request.",
+      "category": "happy-path",
+      "method": "GET",
+      "path": "/pets/{petId}",
+      "pathParams": {
+        "petId": 1
+      },
+      "queryParams": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expectedStatus": [
+        200,
+        200,
+        201,
+        202,
+        204
+      ],
+      "assertions": [
+        "response time < 2000ms",
+        "content-type is JSON when body present"
+      ],
+      "tags": [
+        "pets"
+      ]
+    },
+    {
+      "name": "GET /pets/{petId} — unknown resource id",
+      "description": "Expects 404 for a well-formed but non-existent id.",
+      "category": "edge-case",
+      "method": "GET",
+      "path": "/pets/{petId}",
+      "pathParams": {
+        "petId": "999999999"
+      },
+      "queryParams": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expectedStatus": [
+        404
+      ],
+      "assertions": [
+        "error body present"
+      ],
+      "tags": [
+        "pets",
+        "negative"
+      ]
+    }
+  ]
+}

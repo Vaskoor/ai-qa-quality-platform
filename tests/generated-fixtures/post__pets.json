@@ -1,0 +1,62 @@
+{
+  "endpointId": "post__pets",
+  "cases": [
+    {
+      "name": "POST /pets — happy path",
+      "description": "Verifies /pets returns a success status for a valid request.",
+      "category": "happy-path",
+      "method": "POST",
+      "path": "/pets",
+      "pathParams": {},
+      "queryParams": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Buddy",
+        "tag": "dog",
+        "status": "available"
+      },
+      "expectedStatus": [
+        201,
+        200,
+        201,
+        202,
+        204
+      ],
+      "assertions": [
+        "response time < 2000ms",
+        "content-type is JSON when body present"
+      ],
+      "tags": [
+        "pets"
+      ]
+    },
+    {
+      "name": "POST /pets — malformed JSON body",
+      "description": "Expects a 4xx when the body is syntactically invalid.",
+      "category": "error-handling",
+      "method": "POST",
+      "path": "/pets",
+      "pathParams": {},
+      "queryParams": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": [],
+      "expectedStatus": [
+        400,
+        404,
+        415,
+        422
+      ],
+      "assertions": [
+        "server does not 500 on malformed input"
+      ],
+      "tags": [
+        "pets",
+        "negative"
+      ]
+    }
+  ]
+}
